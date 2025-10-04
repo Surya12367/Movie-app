@@ -1,20 +1,25 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { Calendar, Clock, MapPin, Tag, Info } from "lucide-react";
 
-const MovieSeatBooking = ({
-  layout = { rows: 8, seatsPerRow: 12, aislePosition: 5 },
-  seatTypes = {
+const MovieSeatBooking = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
+  
+  const movieTitle = location.state?.movieTitle || "Movie";
+  
+  // Configuration
+  const layout = { rows: 8, seatsPerRow: 12, aislePosition: 6 };
+  const seatTypes = {
     regular: { name: "Regular", price: 150, rows: [0, 1, 2] },
     premium: { name: "Premium", price: 250, rows: [3, 4, 5] },
     vip: { name: "VIP", price: 350, rows: [6, 7] },
-  },
-  bookedSeats = [],
-  currency = "$",
-  title = "Movie Seat Booking",
-  subtitle = "Select your preferred seats",
-}) => {
-  const navigate = useNavigate();
-  const colors = ["blue", "purple", "yellow", "green", "red", "indigo", "pink", "gray"];
+  };
+  const bookedSeats = ["C5", "C6", "D5", "D6", "E7", "E8"];
+  const currency = "₹";
+
+  const colors = ["blue", "purple", "yellow"];
 
   const getSeatType = (row) => {
     const seatTypeEntries = Object.entries(seatTypes);
@@ -51,27 +56,27 @@ const MovieSeatBooking = ({
 
   const [seats, setSeats] = useState(initializeSeats);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [showTime, setShowTime] = useState("7:00 PM");
+  const [selectedDate, setSelectedDate] = useState("Today");
+
+  const showTimes = ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM", "10:00 PM"];
+  const dates = ["Today", "Tomorrow", "Day After"];
 
   const getColorClass = (colorName) => {
     const colorMap = {
-      blue: "bg-blue-700 border-blue-600 text-white hover:bg-blue-800",
-      purple: "bg-purple-700 border-purple-600 text-white hover:bg-purple-800",
+      blue: "bg-blue-600 border-blue-500 text-white hover:bg-blue-700",
+      purple: "bg-purple-600 border-purple-500 text-white hover:bg-purple-700",
       yellow: "bg-yellow-400 border-yellow-300 text-black hover:bg-yellow-500",
-      green: "bg-green-500 border-green-600 text-white hover:bg-green-600",
-      red: "bg-red-600 border-red-500 text-white hover:bg-red-700",
-      indigo: "bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-700",
-      pink: "bg-pink-500 border-pink-400 text-white hover:bg-pink-600",
-      gray: "bg-gray-600 border-gray-500 text-white hover:bg-gray-700",
     };
     return colorMap[colorName] || colorMap.blue;
   };
 
   const getSeatClassName = (seat) => {
-    const baseClass =
-      "w-10 h-10 m-1 rounded-t-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center text-sm font-bold";
+    const baseClass = "w-9 h-9 m-1 rounded-t-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold";
     if (seat.status === "booked")
-      return `${baseClass} bg-gray-800 border-gray-700 text-gray-400 cursor-not-allowed`;
-    if (seat.selected) return `${baseClass} bg-green-500 border-green-600 text-white transform scale-110`;
+      return `${baseClass} bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed opacity-50`;
+    if (seat.selected) 
+      return `${baseClass} bg-green-500 border-green-400 text-white transform scale-110 shadow-lg shadow-green-500/50`;
     return `${baseClass} ${getColorClass(seat.color)}`;
   };
 
@@ -113,111 +118,202 @@ const MovieSeatBooking = ({
       return;
     }
 
-    setSeats((prev) =>
-      prev.map((row) =>
-        row.map((seat) =>
-          selectedSeats.some((s) => s.id === seat.id) ? { ...seat, status: "booked", selected: false } : seat
-        )
-      )
-    );
-
     const ticketInfo = {
-      movieTitle: title,
+      movieTitle,
       seats: selectedSeats.map((s) => s.id),
       totalPrice: getTotalPrice(),
-      date: new Date().toLocaleString(),
+      showTime,
+      date: selectedDate,
+      bookingDate: new Date().toLocaleString(),
     };
 
-    setSelectedSeats([]);
-
-    // redirect to ticket page with ticket info
     navigate("/ticket", { state: ticketInfo });
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-900 p-4 text-white">
-      <div className="max-w-6xl mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl lg:text-3xl font-bold text-center mb-2 text-yellow-400">{title}</h1>
-        <p className="text-center text-gray-300 mb-6">{subtitle}</p>
-
-        {/* Screen */}
-        <div className="mb-6">
-          <div className="w-full h-4 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 rounded-lg mb-2 shadow-inner" />
-          <p className="text-center text-sm text-gray-400 font-medium">SCREEN</p>
+    <div className="w-full min-h-screen bg-gray-950 p-4 text-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-gray-900 rounded-lg shadow-lg p-6 mb-6 border border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">{movieTitle}</h1>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span>PVR Cinemas, Chennai</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-red-500" />
+                  <span>{selectedDate}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-red-500" />
+                  <span>{showTime}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Seat Map */}
-        <div className="mb-6 overflow-x-auto">
-          <div className="flex flex-col items-center min-w-max">
-            {seats.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex items-center mb-2">
-                <span className="w-8 text-center font-bold text-gray-400 mr-4">{String.fromCharCode(65 + rowIndex)}</span>
-                {renderSeatSection(row, 0, layout.aislePosition)}
-                <div className="w-8"></div>
-                {renderSeatSection(row, layout.aislePosition, layout.seatsPerRow)}
-              </div>
+        {/* Date & Time Selection */}
+        <div className="bg-gray-900 rounded-lg shadow-lg p-6 mb-6 border border-gray-800">
+          <h3 className="text-lg font-semibold mb-4">Select Date</h3>
+          <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+            {dates.map((date) => (
+              <button
+                key={date}
+                onClick={() => setSelectedDate(date)}
+                className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition ${
+                  selectedDate === date
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                {date}
+              </button>
+            ))}
+          </div>
+
+          <h3 className="text-lg font-semibold mb-4">Select Show Time</h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {showTimes.map((time) => (
+              <button
+                key={time}
+                onClick={() => setShowTime(time)}
+                className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition ${
+                  showTime === time
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                {time}
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-6 mb-6 p-4 bg-gray-700 rounded-lg">
-          {Object.entries(seatTypes).map(([type, config], i) => (
-            <div className="flex items-center" key={type}>
-              <div className={`w-6 h-6 border-2 rounded-t-lg mr-2 ${getColorClass(colors[i % colors.length])}`} />
-              <span className="text-sm">
-                {config.name} ({currency}
-                {config.price})
-              </span>
+        {/* Seat Selection */}
+        <div className="bg-gray-900 rounded-lg shadow-lg p-6 mb-6 border border-gray-800">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold">Select Your Seats</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Info className="w-4 h-4" />
+              <span>Click on seats to select</span>
             </div>
-          ))}
-
-          <div className="flex items-center">
-            <div className="w-6 h-6 bg-green-500 border-2 border-green-600 rounded-t-lg mr-2" />
-            <span className="text-sm">Selected</span>
           </div>
-          <div className="flex items-center">
-            <div className="w-6 h-6 bg-gray-600 border-2 border-gray-700 rounded-t-lg mr-2" />
-            <span className="text-sm">Booked</span>
+
+          {/* Screen */}
+          <div className="mb-8">
+            <div className="w-full max-w-4xl mx-auto">
+              <div className="h-2 bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 rounded-lg mb-3 shadow-lg" />
+              <p className="text-center text-sm text-gray-400 font-medium tracking-wider">
+                ⬇️ SCREEN THIS WAY ⬇️
+              </p>
+            </div>
+          </div>
+
+          {/* Seat Map */}
+          <div className="mb-6 overflow-x-auto">
+            <div className="flex flex-col items-center min-w-max mx-auto">
+              {seats.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex items-center mb-2">
+                  <span className="w-8 text-center font-bold text-gray-400 mr-4 text-sm">
+                    {String.fromCharCode(65 + rowIndex)}
+                  </span>
+                  {renderSeatSection(row, 0, layout.aislePosition)}
+                  <div className="w-12"></div>
+                  {renderSeatSection(row, layout.aislePosition, layout.seatsPerRow)}
+                  <span className="w-8 text-center font-bold text-gray-400 ml-4 text-sm">
+                    {String.fromCharCode(65 + rowIndex)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+            {Object.entries(seatTypes).map(([type, config], i) => (
+              <div className="flex items-center" key={type}>
+                <div className={`w-6 h-6 border-2 rounded-t-lg mr-2 ${getColorClass(colors[i % colors.length])}`} />
+                <span className="text-sm">
+                  {config.name} ({currency}{config.price})
+                </span>
+              </div>
+            ))}
+            <div className="flex items-center">
+              <div className="w-6 h-6 bg-green-500 border-2 border-green-400 rounded-t-lg mr-2" />
+              <span className="text-sm">Selected</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-6 h-6 bg-gray-700 border-2 border-gray-600 rounded-t-lg mr-2 opacity-50" />
+              <span className="text-sm">Booked</span>
+            </div>
           </div>
         </div>
 
         {/* Booking Summary */}
-        <div className="bg-gray-700 rounded-lg p-4 mb-4">
-          <h3 className="font-bold text-lg mb-2">Booking Summary</h3>
-          {selectedSeats.length ? (
-            <>
-              <p className="mb-2">
-                Selected Seats:{" "}
-                <span className="font-medium">{selectedSeats.map((s) => s.id).join(", ")}</span>
-              </p>
-              <p className="mb-2">
-                Number of Seats: <span className="font-medium">{selectedSeats.length}</span>
-              </p>
-              <p className="text-xl font-bold text-green-400">
-                Total: {currency}
-                {getTotalPrice()}
-              </p>
-            </>
-          ) : (
-            <p className="text-gray-400">No seats selected</p>
-          )}
-        </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-red-500" />
+              Booking Summary
+            </h3>
+            {selectedSeats.length ? (
+              <div className="space-y-3">
+                <div className="flex justify-between text-gray-300">
+                  <span>Selected Seats:</span>
+                  <span className="font-medium text-white">{selectedSeats.map((s) => s.id).join(", ")}</span>
+                </div>
+                <div className="flex justify-between text-gray-300">
+                  <span>Number of Seats:</span>
+                  <span className="font-medium text-white">{selectedSeats.length}</span>
+                </div>
+                <div className="flex justify-between text-gray-300">
+                  <span>Show Time:</span>
+                  <span className="font-medium text-white">{showTime}</span>
+                </div>
+                <div className="flex justify-between text-gray-300">
+                  <span>Date:</span>
+                  <span className="font-medium text-white">{selectedDate}</span>
+                </div>
+                <div className="border-t border-gray-700 pt-3 mt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold">Total Amount:</span>
+                    <span className="text-2xl font-bold text-green-400">
+                      {currency}{getTotalPrice()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-8">No seats selected</p>
+            )}
+          </div>
 
-        {/* Book Button */}
-        <button
-          onClick={handleBooking}
-          disabled={!selectedSeats.length}
-          className={`w-full py-3 px-6 rounded-lg font-bold text-lg transition-all duration-200 ${
-            selectedSeats.length
-              ? "bg-red-600 hover:bg-red-700 text-white transform hover:scale-105"
-              : "bg-gray-600 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          {selectedSeats.length
-            ? `Book ${selectedSeats.length} Seat(s) - ${currency}${getTotalPrice()}`
-            : "Select Seats to Book"}
-        </button>
+          {/* Book Button */}
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 flex flex-col justify-center">
+            <button
+              onClick={handleBooking}
+              disabled={!selectedSeats.length}
+              className={`w-full py-4 px-6 rounded-lg font-bold text-lg transition-all duration-200 ${
+                selectedSeats.length
+                  ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white transform hover:scale-105 shadow-lg hover:shadow-red-600/50"
+                  : "bg-gray-800 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {selectedSeats.length
+                ? `Proceed to Pay ${currency}${getTotalPrice()}`
+                : "Select Seats to Continue"}
+            </button>
+            {selectedSeats.length > 0 && (
+              <p className="text-center text-gray-400 text-sm mt-3">
+                You're booking {selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
