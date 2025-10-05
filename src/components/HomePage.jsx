@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, Film, MapPin, Filter, TrendingUp, Clock, Star } from "lucide-react";
+import { Search, Film, MapPin, Filter, TrendingUp, Clock, Star, Ticket } from "lucide-react";
 
 const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
@@ -106,8 +106,17 @@ const HomePage = () => {
               </h1>
             </div>
             
-            {/* City Selector */}
+            {/* City Selector & My Bookings */}
             <div className="flex items-center gap-4">
+              <Link
+                to="/booking-history"
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg border border-gray-700 transition"
+                title="My Bookings"
+              >
+                <Ticket className="w-4 h-4 text-red-500" />
+                <span className="hidden sm:inline text-sm">My Bookings</span>
+              </Link>
+              
               <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
                 <MapPin className="w-4 h-4 text-red-500" />
                 <select
@@ -146,7 +155,7 @@ const HomePage = () => {
           </p>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="w-full max-w-3xl">
+          <div className="w-full max-w-3xl">
             <div className="flex bg-white rounded-full shadow-2xl overflow-hidden border-2 border-gray-200 hover:border-red-500 transition">
               <div className="flex items-center pl-6 text-gray-400">
                 <Search className="w-5 h-5" />
@@ -156,16 +165,19 @@ const HomePage = () => {
                 placeholder="Search for Movies, Events, Plays, Sports..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') handleSearch(e);
+                }}
                 className="flex-grow px-4 py-4 text-gray-900 focus:outline-none text-lg"
               />
               <button
-                type="submit"
+                onClick={handleSearch}
                 className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold transition"
               >
                 Search
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, Download, Share2, Calendar, Clock, MapPin, Ticket, Home } from "lucide-react";
 
@@ -7,6 +7,27 @@ const TicketPage = () => {
   const navigate = useNavigate();
   const ticket = location.state;
   const [downloadStatus, setDownloadStatus] = useState("");
+  const [bookingId] = useState(`BK${Date.now().toString().slice(-8)}`);
+
+  // Save booking to localStorage when component mounts
+  useEffect(() => {
+    if (ticket) {
+      const bookingData = {
+        ...ticket,
+        bookingId,
+        bookingDate: new Date().toISOString(),
+      };
+
+      // Get existing bookings
+      const existingBookings = JSON.parse(localStorage.getItem("movieBookings") || "[]");
+      
+      // Add new booking
+      existingBookings.unshift(bookingData);
+      
+      // Save back to localStorage
+      localStorage.setItem("movieBookings", JSON.stringify(existingBookings));
+    }
+  }, [ticket, bookingId]);
 
   if (!ticket) {
     return (
@@ -25,8 +46,6 @@ const TicketPage = () => {
       </div>
     );
   }
-
-  const bookingId = `BK${Date.now().toString().slice(-8)}`;
 
   const handleDownload = () => {
     setDownloadStatus("Downloading...");

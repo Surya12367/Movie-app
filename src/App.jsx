@@ -4,6 +4,7 @@ import HomePage from "./components/HomePage";
 import MovieDetails from "./components/MovieDetails";
 import MovieSeatBooking from "./components/MovieSeatBooking";
 import TicketPage from "./components/TiketPage";
+import BookingHistory from "./components/BookingHistory";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/book/:id" element={<MovieSeatBooking />} />
         <Route path="/ticket" element={<TicketPage />} />
+        <Route path="/booking-history" element={<BookingHistory />} />
       </Routes>
     </div>
   );
